@@ -35,7 +35,8 @@
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "nodemailer": "^9.0.3"
+    "nodemailer": "^9.0.3",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -50,7 +51,6 @@
     "eslint": "^9.27.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "ts-node-dev": "^2.0.0"
   }
 }
