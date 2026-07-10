@@ -29,6 +29,18 @@ function buildMongoUri() {
     }
     return '';
 }
+function normalizeOrigin(url) {
+    return url.trim().replace(/\/+$/, '');
+}
+/** Comma-separated CLIENT_URL values, trailing slashes stripped */
+function parseClientUrls() {
+    const raw = process.env.CLIENT_URL?.trim() || 'http://localhost:3000';
+    const urls = raw
+        .split(',')
+        .map(normalizeOrigin)
+        .filter(Boolean);
+    return [...new Set(urls)];
+}
 function isMongoConfigured() {
     if (process.env.MONGODB_ENABLED === 'false')
         return false;
@@ -60,7 +72,8 @@ exports.env = {
             process.env.CLOUDINARY_API_KEY &&
             process.env.CLOUDINARY_API_SECRET),
     },
-    clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+    clientUrl: parseClientUrls()[0] || 'http://localhost:3000',
+    clientUrls: parseClientUrls(),
     smtp: {
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587', 10),

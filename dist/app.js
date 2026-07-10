@@ -18,9 +18,24 @@ const uploadRoutes_1 = __importDefault(require("./routes/uploadRoutes"));
 const contactRoutes_1 = __importDefault(require("./routes/contactRoutes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const app = (0, express_1.default)();
+function normalizeOrigin(url) {
+    return url.trim().replace(/\/+$/, '');
+}
 app.use((0, helmet_1.default)());
 app.use((0, cors_1.default)({
-    origin: env_1.env.clientUrl,
+    origin(origin, callback) {
+        // Allow non-browser clients (curl, Postman) and same-origin requests
+        if (!origin) {
+            callback(null, true);
+            return;
+        }
+        const normalized = normalizeOrigin(origin);
+        if (env_1.env.clientUrls.includes(normalized)) {
+            callback(null, true);
+            return;
+        }
+        callback(null, false);
+    },
     credentials: true,
 }));
 app.use((0, morgan_1.default)(env_1.env.isProd ? 'combined' : 'dev'));

@@ -29,6 +29,21 @@ function buildMongoUri(): string {
   return '';
 }
 
+function normalizeOrigin(url: string): string {
+  return url.trim().replace(/\/+$/, '');
+}
+
+/** Comma-separated CLIENT_URL values, trailing slashes stripped */
+function parseClientUrls(): string[] {
+  const raw = process.env.CLIENT_URL?.trim() || 'http://localhost:3000';
+  const urls = raw
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
+  return [...new Set(urls)];
+}
+
 function isMongoConfigured(): boolean {
   if (process.env.MONGODB_ENABLED === 'false') return false;
   return buildMongoUri().length > 0;
@@ -68,7 +83,8 @@ export const env = {
     ),
   },
 
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+  clientUrl: parseClientUrls()[0] || 'http://localhost:3000',
+  clientUrls: parseClientUrls(),
 
   smtp: {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',

@@ -16,10 +16,28 @@ import { errorHandler, notFound } from './middleware/errorHandler';
 
 const app = express();
 
+function normalizeOrigin(url: string): string {
+  return url.trim().replace(/\/+$/, '');
+}
+
 app.use(helmet());
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin(origin, callback) {
+      // Allow non-browser clients (curl, Postman) and same-origin requests
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const normalized = normalizeOrigin(origin);
+      if (env.clientUrls.includes(normalized)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, false);
+    },
     credentials: true,
   })
 );
