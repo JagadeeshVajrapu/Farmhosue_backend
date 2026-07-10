@@ -1,8 +1,11 @@
 {
   "name": "vidhaan-farmhouse-api",
   "version": "1.0.0",
-  "description": "Vidhaan Farmhouse - Premium Booking Platform API",
+  "description": "Vidhaan Farm House - Premium Booking Platform API",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
@@ -19,7 +22,7 @@
     "luxury",
     "hospitality"
   ],
-  "author": "Vidhaan Farmhouse",
+  "author": "Vidhaan Farm House",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -34,9 +37,7 @@
     "mongoose": "^8.16.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
-    "multer-storage-cloudinary": "^4.0.0",
-    "nodemailer": "^9.0.3",
-    "typescript": "^5.8.3"
+    "nodemailer": "^9.0.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -46,11 +47,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.0.3",
-    "@types/nodemailer": "^8.0.1",
+    "@types/node": "^22.15.0",
+    "@types/nodemailer": "^6.4.17",
     "eslint": "^9.27.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
-    "ts-node-dev": "^2.0.0"
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
   }
 }

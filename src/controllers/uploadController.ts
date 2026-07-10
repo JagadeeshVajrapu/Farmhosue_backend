@@ -2,21 +2,19 @@ import { Response } from 'express';
 import { AuthRequest } from '../types';
 import { asyncHandler } from '../middleware/validate';
 import { createError } from '../middleware/errorHandler';
+import { uploadImageBuffer } from '../config/cloudinary';
 
 /** Handle Cloudinary file upload */
 export const uploadImage = asyncHandler(async (req: AuthRequest, res: Response) => {
-  if (!req.file) {
+  if (!req.file?.buffer) {
     throw createError('No file uploaded', 400);
   }
 
-  const file = req.file as Express.Multer.File & { path?: string; filename?: string };
+  const data = await uploadImageBuffer(req.file.buffer);
 
   res.json({
     success: true,
-    data: {
-      url: file.path,
-      publicId: file.filename,
-    },
+    data,
   });
 });
 
@@ -26,10 +24,14 @@ export const uploadImages = asyncHandler(async (req: AuthRequest, res: Response)
     throw createError('No files uploaded', 400);
   }
 
-  const images = req.files.map((file) => {
-    const f = file as Express.Multer.File & { path?: string; filename?: string };
-    return { url: f.path, publicId: f.filename };
-  });
+  const images = await Promise.all(
+    req.files.map((file) => {
+      if (!file.buffer) {
+        throw createError('Invalid file upload', 400);
+      }
+      return uploadImageBuffer(file.buffer);
+    })
+  );
 
   res.json({ success: true, data: images });
 });

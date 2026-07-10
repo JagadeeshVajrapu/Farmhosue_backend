@@ -19,6 +19,9 @@ function createTransporter() {
             user: env_1.env.smtp.user,
             pass: env_1.env.smtp.pass,
         },
+        tls: {
+            minVersion: 'TLSv1.2',
+        },
     });
 }
 function escapeHtml(text) {
@@ -214,21 +217,21 @@ function contactEnquiryEmailTemplate(data) {
 /** Notify owner of a new contact form enquiry */
 async function sendContactEnquiryEmail(data) {
     const transporter = createTransporter();
-    const ownerEmail = env_1.env.smtp.ownerEmail;
+    const ownerEmail = env_1.env.smtp.ownerEmail || env_1.env.smtp.adminEmail;
     if (!transporter) {
-        console.log('[Email] Gmail SMTP not configured — skipping contact enquiry notification');
+        console.log('[Email] SMTP not configured — skipping contact enquiry notification');
         return false;
     }
     if (!ownerEmail) {
-        console.log('[Email] OWNER_EMAIL not set — skipping contact enquiry notification');
+        console.log('[Email] OWNER_EMAIL / ADMIN_EMAIL not set — skipping contact enquiry notification');
         return false;
     }
     try {
         await transporter.sendMail({
-            from: `"Vidhaan Farmhouse" <${env_1.env.smtp.from}>`,
+            from: env_1.env.smtp.from,
             to: ownerEmail,
             replyTo: data.email,
-            subject: 'New Customer Enquiry',
+            subject: `New Enquiry from ${data.name} — ${formatEventTypeLabel(data.eventType)}`,
             html: contactEnquiryEmailTemplate(data),
         });
         console.log(`[Email] Contact enquiry notification sent to ${ownerEmail}`);

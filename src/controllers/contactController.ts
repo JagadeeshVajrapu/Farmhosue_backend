@@ -18,14 +18,35 @@ const EVENT_TYPES = [
   'other',
 ];
 
+function normalizeIndianPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  const local =
+    digits.startsWith('91') && digits.length >= 12
+      ? digits.slice(-10)
+      : digits.startsWith('0') && digits.length === 11
+        ? digits.slice(1)
+        : digits.slice(-10);
+
+  return `+91${local}`;
+}
+
+function isValidIndianMobile(phone: string): boolean {
+  const digits = phone.replace(/\D/g, '').slice(-10);
+  return digits.length === 10 && /^[6-9]\d{9}$/.test(digits);
+}
+
 export const contactValidation = [
   body('name').trim().notEmpty().withMessage('Name is required').isLength({ min: 2 }),
   body('phone')
     .trim()
     .notEmpty()
     .withMessage('Phone is required')
-    .matches(/^[+\d\s-]+$/)
-    .withMessage('Invalid phone number'),
+    .custom((value) => {
+      if (!isValidIndianMobile(value)) {
+        throw new Error('Enter a valid 10-digit Indian mobile number');
+      }
+      return true;
+    }),
   body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
   body('eventType')
     .trim()
@@ -59,7 +80,7 @@ export const createContact = asyncHandler(async (req: Request, res: Response) =>
 
   const enquiry = await contactService.createEnquiry({
     name,
-    phone,
+    phone: normalizeIndianPhone(phone),
     email,
     eventType,
     preferredDate: preferred,

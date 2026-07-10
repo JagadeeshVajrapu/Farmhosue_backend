@@ -58,12 +58,15 @@ export const env = {
   smtp: {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT || '587', 10),
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || '',
-    from: process.env.SMTP_FROM || process.env.SMTP_USER || 'reservations@vidhaan.com',
-    adminEmail: process.env.ADMIN_EMAIL || '',
-    ownerEmail: process.env.OWNER_EMAIL || process.env.ADMIN_EMAIL || '',
-    isConfigured: !!(process.env.SMTP_USER && process.env.SMTP_PASS),
+    user: (process.env.SMTP_USER || '').trim(),
+    pass: (process.env.SMTP_PASS || '').replace(/\s+/g, ''),
+    from: (process.env.SMTP_FROM || process.env.SMTP_USER || 'reservations@vidhaan.com').trim(),
+    adminEmail: (process.env.ADMIN_EMAIL || '').trim(),
+    ownerEmail: (process.env.OWNER_EMAIL || process.env.ADMIN_EMAIL || '').trim(),
+    isConfigured: !!(
+      process.env.SMTP_USER?.trim() &&
+      process.env.SMTP_PASS?.replace(/\s+/g, '')
+    ),
   },
 
   whatsapp: {
