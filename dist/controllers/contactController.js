@@ -6,6 +6,7 @@ const validate_1 = require("../middleware/validate");
 const errorHandler_1 = require("../middleware/errorHandler");
 const contact_service_1 = require("../services/contact.service");
 const email_service_1 = require("../services/email.service");
+const env_1 = require("../config/env");
 const CONTACT_STATUSES = ['New', 'Contacted', 'Booked', 'Closed'];
 const EVENT_TYPES = [
     'weekend-stay',
@@ -59,7 +60,7 @@ exports.contactValidation = [
         .isLength({ min: 10 })
         .withMessage('Message must be at least 10 characters'),
 ];
-/** POST /api/contact — submit a new enquiry */
+/** POST /api/contact — submit a new enquiry (email only, no database) */
 exports.createContact = (0, validate_1.asyncHandler)(async (req, res) => {
     const { name, phone, email, eventType, preferredDate, guestCount, message } = req.body;
     const preferred = new Date(preferredDate);
@@ -68,43 +69,28 @@ exports.createContact = (0, validate_1.asyncHandler)(async (req, res) => {
     if (preferred < today) {
         throw (0, errorHandler_1.createError)('Preferred date cannot be in the past', 400);
     }
-    const enquiry = await contact_service_1.contactService.createEnquiry({
-        name,
-        phone: normalizeIndianPhone(phone),
+    if (!env_1.env.smtp.isConfigured) {
+        throw (0, errorHandler_1.createError)('Email service is not configured. Please call us directly to submit your enquiry.', 503);
+    }
+    const normalizedPhone = normalizeIndianPhone(phone);
+    const submittedAt = new Date();
+    const emailSent = await (0, email_service_1.sendContactEnquiryEmail)({
+        name: name.trim(),
+        phone: normalizedPhone,
         email,
         eventType,
         preferredDate: preferred,
         guestCount,
-        message,
+        message: message.trim(),
+        submittedAt,
     });
-    // Send owner notification — non-blocking; enquiry is already saved
-    const emailSent = await (0, email_service_1.sendContactEnquiryEmail)({
-        name: enquiry.name,
-        phone: enquiry.phone,
-        email: enquiry.email,
-        eventType: enquiry.eventType,
-        preferredDate: enquiry.preferredDate,
-        guestCount: enquiry.guestCount,
-        message: enquiry.message,
-        submittedAt: enquiry.createdAt,
-    }).catch((err) => {
-        console.error('[Contact] Email notification error:', err);
-        return false;
-    });
-    res.status(201).json({
+    if (!emailSent) {
+        throw (0, errorHandler_1.createError)('Unable to send your enquiry at this time. Please call us or try again shortly.', 503);
+    }
+    res.status(200).json({
         success: true,
-        message: 'Your enquiry has been submitted successfully. Our team will respond shortly.',
-        data: {
-            id: enquiry._id,
-            name: enquiry.name,
-            email: enquiry.email,
-            eventType: enquiry.eventType,
-            preferredDate: enquiry.preferredDate,
-            guestCount: enquiry.guestCount,
-            status: enquiry.status,
-            createdAt: enquiry.createdAt,
-        },
-        emailSent,
+        message: 'Enquiry sent successfully.',
+        emailSent: true,
     });
 });
 exports.statusValidation = [

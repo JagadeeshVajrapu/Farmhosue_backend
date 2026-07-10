@@ -9,6 +9,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const env_1 = require("./config/env");
+const database_1 = require("./config/database");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const propertyRoutes_1 = __importDefault(require("./routes/propertyRoutes"));
 const bookingRoutes_1 = __importDefault(require("./routes/bookingRoutes"));
@@ -28,7 +29,17 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
 // Health check
 app.get('/api/health', (_req, res) => {
-    res.json({ success: true, message: 'Vidhaan Farmhouse API is running' });
+    const database = !env_1.env.mongodb.enabled
+        ? 'disabled'
+        : (0, database_1.isDbConnected)()
+            ? 'connected'
+            : 'disconnected';
+    res.json({
+        success: true,
+        message: 'Vidhaan Farmhouse API is running',
+        database,
+        smtp: env_1.env.smtp.isConfigured ? 'configured' : 'missing',
+    });
 });
 // API routes
 app.use('/api/auth', authRoutes_1.default);

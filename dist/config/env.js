@@ -27,14 +27,27 @@ function buildMongoUri() {
         const encodedPass = encodeURIComponent(password);
         return `mongodb+srv://${encodedUser}:${encodedPass}@${cluster}/${database}?retryWrites=true&w=majority&appName=Cluster0`;
     }
-    return 'mongodb://localhost:27017/vidhaan-farmhouse';
+    return '';
 }
+function isMongoConfigured() {
+    if (process.env.MONGODB_ENABLED === 'false')
+        return false;
+    return buildMongoUri().length > 0;
+}
+const mongodbUri = buildMongoUri();
 exports.env = {
     port: parseInt(process.env.PORT || '5000', 10),
     nodeEnv: process.env.NODE_ENV || 'development',
     isDev: process.env.NODE_ENV !== 'production',
     isProd: process.env.NODE_ENV === 'production',
-    mongodbUri: buildMongoUri(),
+    mongodb: {
+        enabled: isMongoConfigured(),
+        uri: mongodbUri,
+        /** When true, the process exits if MongoDB cannot connect */
+        required: process.env.MONGODB_REQUIRED === 'true',
+    },
+    /** @deprecated Use env.mongodb.uri */
+    mongodbUri,
     jwt: {
         secret: requireEnv('JWT_SECRET', 'dev-secret-change-in-production'),
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',

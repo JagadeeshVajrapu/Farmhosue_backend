@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import { env } from './config/env';
+import { isDbConnected } from './config/database';
 import authRoutes from './routes/authRoutes';
 import propertyRoutes from './routes/propertyRoutes';
 import bookingRoutes from './routes/bookingRoutes';
@@ -29,7 +30,18 @@ app.use(cookieParser());
 
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ success: true, message: 'Vidhaan Farmhouse API is running' });
+  const database = !env.mongodb.enabled
+    ? 'disabled'
+    : isDbConnected()
+      ? 'connected'
+      : 'disconnected';
+
+  res.json({
+    success: true,
+    message: 'Vidhaan Farmhouse API is running',
+    database,
+    smtp: env.smtp.isConfigured ? 'configured' : 'missing',
+  });
 });
 
 // API routes
